@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -17,11 +18,13 @@ import {
   CheckCircle,
   Clock,
   Heart,
+  Share2,
   Star,
   Trophy,
   XCircle,
 } from "lucide-react";
 import { motion } from "motion/react";
+import { toast } from "sonner";
 import type { ExamResult } from "../backend";
 import Footer from "../components/Footer";
 import SchoolHeader from "../components/SchoolHeader";
@@ -172,6 +175,25 @@ export default function DashboardPage() {
     resultsByExam[key].push(r);
   }
 
+  async function handleShare() {
+    const studentName = student?.name ?? "Student";
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${studentName} - Student Portal`,
+          text: `View student dashboard for ${studentName}`,
+          url,
+        });
+      } catch {
+        // User cancelled or error — do nothing
+      }
+    } else {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied to clipboard!");
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SchoolHeader />
@@ -206,11 +228,23 @@ export default function DashboardPage() {
                 Parent: {student?.parentName ?? "Parent"}
               </p>
             </div>
-            <div className="text-right">
-              <Badge className="bg-accent text-accent-foreground">
-                Active Student
-              </Badge>
-              <p className="text-xs text-primary-foreground/60 mt-1">
+            <div className="text-right flex flex-col items-end gap-2">
+              <div className="flex items-center gap-2">
+                <Badge className="bg-accent text-accent-foreground">
+                  Active Student
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleShare}
+                  className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 h-8 w-8 p-0"
+                  title="Share student dashboard"
+                  data-ocid="dashboard.share_button"
+                >
+                  <Share2 className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-primary-foreground/60">
                 {student?.dateOfBirth ?? ""}
               </p>
             </div>
